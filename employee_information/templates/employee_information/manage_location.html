@@ -1,0 +1,94 @@
+<div class="container-fluid">
+    <form action="" id="location-form">
+        <input type="hidden" name="id" value="{% if location.pk %}{{location.pk}}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Region Name</label>
+            <input type="text" name="region" id="region" class="form-control form-control-sm rounded-0" value="{% if location.region %}{{location.region}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="zone" class="control-label">Zone</label>
+            <input type="text" name="zone" id="zone" class="form-control form-control-sm rounded-0" value="{% if location.zone %}{{location.zone}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="district" class="control-label">District</label>
+            <input type="text" name="district" id="district" class="form-control form-control-sm rounded-0" value="{% if location.district %}{{location.district}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="sector" class="control-label">Sector</label>
+            <input type="text" name="sector" id="sector" class="form-control form-control-sm rounded-0" value="{% if location.sector %}{{location.sector}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="cells" class="control-label">Cells</label>
+            <input type="text" name="cells" id="cells" class="form-control form-control-sm rounded-0" value="{% if location.cells %}{{location.cells}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="village" class="control-label">Village</label>
+            <input type="text" name="village" id="village" class="form-control form-control-sm rounded-0" value="{% if location.village %}{{location.village}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="sitename" class="control-label">site Name</label>
+            <input type="text" name="sitename" id="sitename" class="form-control form-control-sm rounded-0" value="{% if location.sitename %}{{location.sitename}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="sitetechnology" class="control-label">site Technology</label>
+            <input type="text" name="sitetechnology" id="sitetechnology" class="form-control form-control-sm rounded-0" value="{% if location.sitetechnology %}{{location.sitetechnology}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="cellid" class="control-label">Cell ID</label>
+            <input type="text" name="cellid" id="cellid" class="form-control form-control-sm rounded-0" value="{% if location.cellid %}{{location.cellid}}{% endif %}" required>
+        </div>
+    </form>
+
+
+</div>
+<script>
+    $(function() {
+        $('#location-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-location-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert_toast("An error occured", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("An error occured", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

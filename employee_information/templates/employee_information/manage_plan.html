@@ -1,0 +1,93 @@
+<div class="container-fluid">
+    <form action="" id="plan-form">
+        <input type="hidden" name="id" value="{% if plan.pk %}{{plan.pk}}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Plan</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if plan.name %}{{plan.name}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="data_limit" class="control-label">Data limit</label>
+            <input type="text" name="data_limit" id="data_limit" class="form-control form-control-sm rounded-0" value="{% if plan.data_limit %}{{plan.data_limit}}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="talk_time_limit " class="control-label">Talk_time_limit </label>
+            <input type="text" name="talk_time_limit " id="talk_time_limit " class="form-control form-control-sm rounded-0" value="{% if plan.talk_time_limit  %}{{plan.talk_time_limit }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="sms_limit " class="control-label">SMS Limit </label>
+            <input type="text" name="sms_limit " id="sms_limit " class="form-control form-control-sm rounded-0" value="{% if plan.sms_limit  %}{{plan.sms_limit }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="price " class="control-label">Price </label>
+            <input type="text" name="price " id="price " class="form-control form-control-sm rounded-0" value="{% if plan.price  %}{{plan.price }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="status" class="control-label">Status</label>
+            <select name="status" id="status" class="form-control form-control-sm rounded-0" required>
+            {% if plans.status and plan.status == 1 %}
+            <option value="1" selected>Active</option>
+            {% else %}
+            <option value="1">Active</option>
+            {% endif %}
+
+            {% if plans.status and plan.status == 0 %}
+            <option value="0" selected>Inactive</option>
+            {% else %}
+            <option value="0">Inactive</option>
+            {% endif %}
+        </select>
+        </div>
+ 
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#plan-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'plan-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert_toast("An error occured", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("An error occured", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>
